@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block title %}练习结果{% endblock %}
+{% block content %}
+<h3>结果</h3>
+<p><strong>题目：</strong>{{ material.question_text }}</p>
+
+{% if material.audio %}
+    <audio controls>
+        <source src="{{ material.audio.url }}" type="audio/mpeg">
+    </audio>
+{% endif %}
+
+<p><strong>你的答案：</strong>{{ user_answer }}</p>
+<p><strong>标准答案：</strong>{{ material.answer_text }}</p>
+
+{% if is_correct %}
+    <p class="text-success">✅ 回答正确！</p>
+{% else %}
+    <p class="text-danger">❌ 回答错误。</p>
+{% endif %}
+
+<a href="{% url 'practice' %}" class="btn btn-secondary">再做一题</a>
+{% endblock %}
