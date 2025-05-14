@@ -17,8 +17,9 @@ SECRET_KEY = config("DJANGO_SECRET_KEY")
 DEBUG = False
 #DEBUG = True
 #DEBUG = config("DEBUG", default=False, cast=bool)  # 生产环境时设置为 False
-#ALLOWED_HOSTS = config("ALLOWED_HOSTS").split(",")
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'listen-app-8hts.onrender.com', '.onrender.com']  # 生产环境时设置为具体的域名或 IP 地址
+ALLOWED_HOSTS = config("ALLOWED_HOSTS").split(",")
+#ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'listen-app-8hts.onrender.com', '.onrender.com']  # 生产环境时设置为具体的域名或 IP 地址
+
 # （可选但推荐）用于本地调试时启用静态文件服务
 if not DEBUG:
     STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
