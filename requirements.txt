@@ -2,6 +2,7 @@ asgiref==3.8.1
 certifi==2025.4.26
 charset-normalizer==3.4.2
 click==8.1.8
+dj-database-url==2.3.0
 Django==5.1.2
 filelock==3.18.0
 fsspec==2025.3.2
@@ -19,6 +20,7 @@ numpy==2.2.5
 openai-whisper @ git+https://github.com/openai/whisper.git@517a43ecd132a2089d85f4ebc044728a71d49f6e
 packaging==25.0
 psycopg2-binary==2.9.10
+python-decouple==3.8
 regex==2024.11.6
 requests==2.32.3
 setuptools==80.4.0

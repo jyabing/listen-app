@@ -1,21 +1,17 @@
 import os
 from pathlib import Path
+from decouple import config
+import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')   #添加一行以准备部署用
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-c@79kpl@j$*j-l6@%k^4%eu(q@qkyux0we$0yy2&gj_2pz8g05'
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-import os
-ALLOWED_HOSTS = ['.onrender.com']
+SECRET_KEY = config("DJANGO_SECRET_KEY")
+DEBUG = config("DEBUG", cast=bool)
+ALLOWED_HOSTS = config("ALLOWED_HOSTS").split(",")
 
 # Application definition
 
@@ -64,16 +60,10 @@ WSGI_APPLICATION = 'listen_core.wsgi.application'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'postgres',
-        'USER': 'postgres',
-        'PASSWORD': 'Mydog8946',
-        'HOST': 'db.fhuqwngqgqbjhwnlrtrq.supabase.co',
-        'PORT': '5432',
-    }
+    "default": dj_database_url.parse(config("DATABASE_URL"))
 }
-#postgresql://postgres:[YOUR-PASSWORD]@db.fhuqwngqgqbjhwnlrtrq.supabase.co:5432/postgres
+
+#postgresql://postgres.fhuqwngqgqbjhwnlrtrq:Mydog8946@aws-0-ap-northeast-1.pooler.supabase.com:6543/postgres
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
 
@@ -110,9 +100,10 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
-STATIC_URL = 'static/'
-STATICFILES_DIRS = [ BASE_DIR / 'templates' ]
-
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [ BASE_DIR / 'static' ]
+#STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')   #添加一行以准备部署用
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
