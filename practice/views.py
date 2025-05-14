@@ -11,6 +11,12 @@ import difflib
 import html
 from django.db.models import Max
 
+def home_view(request):
+    """
+    入口首页：展示各个功能入口链接
+    """
+    return render(request, 'home.html')
+
 def is_answer_similar(user_input, correct_answer, threshold=0.85):
     """
     使用 difflib 比较相似度，threshold=0.85 表示相似度达到 85% 即视为正确。
