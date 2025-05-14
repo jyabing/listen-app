@@ -14,7 +14,8 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')   #添加一行以准备部�
 #STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 SECRET_KEY = config("DJANGO_SECRET_KEY")
-DEBUG = True
+DEBUG = False
+#DEBUG = True
 #DEBUG = config("DEBUG", default=False, cast=bool)  # 生产环境时设置为 False
 #ALLOWED_HOSTS = config("ALLOWED_HOSTS").split(",")
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'listen-app-8hts.onrender.com', '.onrender.com']  # 生产环境时设置为具体的域名或 IP 地址
