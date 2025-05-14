@@ -4,7 +4,9 @@ from .views import (
     practice_setup_view,
     login_view,
     wrong_list_view,      # ✅ 加入这里
-    retry_wrong_view      # ✅ 加入这里
+    retry_wrong_view,      # ✅ 加入这里
+    review_view,          # ✅ 加入这里
+
 )
 
 urlpatterns = [
@@ -13,4 +15,5 @@ urlpatterns = [
     path('start/', practice_view, name='practice'),
     path('wrong/', wrong_list_view, name='wrong_list'),
     path('wrong/<int:material_id>/retry/', retry_wrong_view, name='retry_wrong'),
+    path('review/', views.review_view, name='review'),
 ]

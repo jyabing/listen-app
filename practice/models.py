@@ -43,6 +43,12 @@ class AnswerRecord(models.Model):
     is_correct = models.BooleanField(default=False)
     answered_at = models.DateTimeField(auto_now_add=True)
 
+    # —— 以下为 SM-2 算法所需字段 ——
+    repetitions = models.IntegerField(default=0)
+    interval = models.IntegerField(default=0)               # 天数
+    ease = models.FloatField(default=2.5)                    # 难度系数
+    next_review = models.DateField(null=True, blank=True)    # 下次复习日期
+
     def __str__(self):
-        return f"{self.user.username} - {self.material.id}"
+        return f"{self.user.username} – {self.material.id}"
     

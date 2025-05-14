@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}到期复习{% endblock %}
+{% block content %}
+<h2>今日到期复习</h2>
+{% if materials %}
+    <ul class="list-group">
+    {% for rec in records %}
+        <li class="list-group-item">
+        <a href="{% url 'retry_wrong' rec.material.id %}">
+            {{ rec.material.question_text|truncatechars:30 }}
+        </a>
+        （上次复习：{{ rec.answered_at.date }}，间隔 {{ rec.interval }} 天）
+        </li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>恭喜！暂无到期复习内容，下次再来吧。</p>
+{% endif %}
+{% endblock %}

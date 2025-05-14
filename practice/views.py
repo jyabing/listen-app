@@ -10,6 +10,23 @@ import os
 import difflib
 import html
 from django.db.models import Max
+from .utils import sm2_update
+
+# …在 POST 打字模式逻辑里…
+raw = request.POST.get("user_answer", "").strip()
+is_correct = raw == material.answer_text.strip()
+
+rec = AnswerRecord.objects.create(
+    user=request.user,
+    material=material,
+    user_answer=raw,
+    is_correct=is_correct,
+    answered_at=timezone.now(),
+    # repetitions, interval, ease 三个初始会用默认值
+)
+# 根据是否答对赋予 quality 分数
+quality = 5 if is_correct else 2
+rec = sm2_update(rec, quality)
 
 def home_view(request):
     """
@@ -241,3 +258,18 @@ def retry_wrong_view(request, material_id):
             "material": material,
             "mode": mode
         })
+
+@login_required
+def review_view(request):
+    today = timezone.now().date()
+    # 筛选出所有 next_review <= 今天 的记录
+    due_records = AnswerRecord.objects.filter(
+        user=request.user,
+        next_review__lte=today
+    ).order_by('next_review')
+    # 对应的题目列表（按 due 排序）
+    materials = [rec.material for rec in due_records]
+    return render(request, "practice/review.html", {
+        "records": due_records,
+        "materials": materials
+    })
