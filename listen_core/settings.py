@@ -1,8 +1,9 @@
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-STATIC_ROOT = BASE_DIR / 'staticfiles'   #添加一行以准备部署用
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')   #添加一行以准备部署用
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
@@ -15,8 +16,6 @@ DEBUG = True
 
 import os
 ALLOWED_HOSTS = ['.onrender.com']
-
-
 
 # Application definition
 
@@ -60,7 +59,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'listen_core.wsgi.application'
-
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
@@ -125,3 +123,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 LOGIN_URL = '/practice/login/'         # 未登录时跳转地址
 LOGIN_REDIRECT_URL = '/practice/'      # 登录后跳转地址（仅用于 Django auth 默认登录）
+
+# （可选但推荐）用于本地调试时启用静态文件服务
+if not DEBUG:
+    STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'

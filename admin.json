@@ -1,0 +1,1 @@
+[{"model": "auth.user", "pk": 1, "fields": {"password": "pbkdf2_sha256$870000$bKll5jJUs7TjD1fXDlBSLZ$uJAPAUEAxjFWahXYmKFB3KVlz/AqPFx+kWj1pvVs7jU=", "last_login": null, "is_superuser": true, "username": "brianjia", "first_name": "", "last_name": "", "email": "", "is_staff": true, "is_active": true, "date_joined": "2025-05-14T10:15:03.237Z", "groups": [], "user_permissions": []}}]
