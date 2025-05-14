@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block title %}错题再练{% endblock %}
+{% block content %}
+<h3>错题再练</h3>
+
+{% if materials %}
+<ul class="list-group">
+    {% for m in materials %}
+        <li class="list-group-item">
+            {{ m.question_text|truncatechars:40 }}
+            <a href="{% url 'retry_wrong' m.id %}?mode=typing" class="btn btn-sm btn-outline-primary float-end">重新练习</a>
+        </li>
+    {% endfor %}
+</ul>
+{% else %}
+<p>🎉 目前没有答错的题目！</p>
+{% endif %}
+{% endblock %}

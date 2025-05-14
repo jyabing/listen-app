@@ -13,7 +13,9 @@ SECRET_KEY = 'django-insecure-c@79kpl@j$*j-l6@%k^4%eu(q@qkyux0we$0yy2&gj_2pz8g05
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+import os
+ALLOWED_HOSTS = ['.onrender.com']
+
 
 
 # Application definition
@@ -65,12 +67,15 @@ WSGI_APPLICATION = 'listen_core.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'postgres',
+        'USER': 'postgres',
+        'PASSWORD': 'Mydog8946',
+        'HOST': 'db.fhuqwngqgqbjhwnlrtrq.supabase.co',
+        'PORT': '5432',
     }
 }
-
-
+#postgresql://postgres:[YOUR-PASSWORD]@db.fhuqwngqgqbjhwnlrtrq.supabase.co:5432/postgres
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
 
@@ -114,3 +119,9 @@ STATICFILES_DIRS = [ BASE_DIR / 'templates' ]
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+LOGIN_URL = '/practice/login/'         # 未登录时跳转地址
+LOGIN_REDIRECT_URL = '/practice/'      # 登录后跳转地址（仅用于 Django auth 默认登录）

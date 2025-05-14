@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block title %}口说练习{% endblock %}
+{% block content %}
+<h3>请听题后录音作答</h3>
+
+{% if material.audio %}
+<audio controls>
+    <source src="{{ material.audio.url }}" type="audio/mpeg">
+</audio>
+{% endif %}
+
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div>
+        <button type="button" class="btn btn-success" id="start-btn">🎙️ 开始录音</button>
+        <button type="button" class="btn btn-danger" id="stop-btn" disabled>⏹️ 停止录音</button>
+        <audio id="playback" controls class="d-block my-3"></audio>
+    </div>
+    <input type="hidden" name="mode" value="speaking">
+    <input type="file" name="audio_data" id="audio_data" hidden>
+    <button type="submit" class="btn btn-primary mt-3">提交录音</button>
+</form>
+
+<script>
+let mediaRecorder;
+let audioChunks = [];
+
+document.getElementById("start-btn").onclick = async () => {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    mediaRecorder = new MediaRecorder(stream);
+    audioChunks = [];
+
+    mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+    mediaRecorder.onstop = () => {
+        const blob = new Blob(audioChunks, { type: 'audio/webm' });
+        const audioURL = URL.createObjectURL(blob);
+        document.getElementById("playback").src = audioURL;
+
+        // Create a file input and append to form
+        const file = new File([blob], "recorded.webm");
+        const container = new DataTransfer();
+        container.items.add(file);
+        document.getElementById("audio_data").files = container.files;
+    };
+
+    mediaRecorder.start();
+    document.getElementById("start-btn").disabled = true;
+    document.getElementById("stop-btn").disabled = false;
+};
+
+document.getElementById("stop-btn").onclick = () => {
+    mediaRecorder.stop();
+    document.getElementById("start-btn").disabled = false;
+    document.getElementById("stop-btn").disabled = true;
+};
+</script>
+{% endblock %}
