@@ -12,22 +12,6 @@ import html
 from django.db.models import Max
 from .utils import sm2_update
 
-# …在 POST 打字模式逻辑里…
-raw = request.POST.get("user_answer", "").strip()
-is_correct = raw == material.answer_text.strip()
-
-rec = AnswerRecord.objects.create(
-    user=request.user,
-    material=material,
-    user_answer=raw,
-    is_correct=is_correct,
-    answered_at=timezone.now(),
-    # repetitions, interval, ease 三个初始会用默认值
-)
-# 根据是否答对赋予 quality 分数
-quality = 5 if is_correct else 2
-rec = sm2_update(rec, quality)
-
 def home_view(request):
     """
     入口首页：展示各个功能入口链接
@@ -73,29 +57,58 @@ def login_view(request):
 
 @login_required
 def practice_view(request):
-    # 获取所有题目，从中随机选择一个
-    material = random.choice(Material.objects.all())
+    # 获取分类、模式参数
+    category_id = request.GET.get("category_id")
+    mode = request.GET.get("mode", "typing")
 
+    # 如果没有选分类，跳回设置页
+    if not category_id:
+        return redirect("practice_setup")
+
+    # 验证 category_id
+    try:
+        category_id = int(category_id)
+    except ValueError:
+        return redirect("practice_setup")
+
+    # 随机选题
+    materials = Material.objects.filter(categories__id=category_id)
+    if not materials.exists():
+        return render(request, "practice/result.html", {
+            "material": None,
+            "message": "该分类下暂无题目，请返回选择其他分类。"
+        })
+    material = random.choice(materials)
+
+    # 处理 POST（用户提交答案）
     if request.method == "POST":
-        user_answer = request.POST.get("user_answer", "").strip()
-        is_correct = user_answer == material.answer_text.strip()
+        # —— 打字模式逻辑举例 —— 
+        raw = request.POST.get("user_answer", "").strip()
+        is_correct = (raw == material.answer_text.strip())
 
-        # 保存答题记录
-        AnswerRecord.objects.create(
+        # 创建答题记录（含 SM-2 复习字段）
+        rec = AnswerRecord.objects.create(
             user=request.user,
             material=material,
-            user_answer=user_answer,
+            user_answer=raw,
             is_correct=is_correct,
             answered_at=timezone.now()
         )
+        # 调用 sm2 算法更新下次复习时间
+        rec = sm2_update(rec, quality=5 if is_correct else 2)
 
+        # 渲染结果页
         return render(request, "practice/result.html", {
             "material": material,
-            "user_answer": user_answer,
+            "user_answer": raw,
             "is_correct": is_correct
         })
 
-    return render(request, "practice/practice.html", {"material": material})
+    # 默认 GET，渲染练习页面
+    return render(request, "practice/practice.html", {
+        "material": material,
+        "mode": mode
+    })
 
 @login_required
 def practice_setup_view(request):

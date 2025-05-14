@@ -15,5 +15,5 @@ urlpatterns = [
     path('start/', practice_view, name='practice'),
     path('wrong/', wrong_list_view, name='wrong_list'),
     path('wrong/<int:material_id>/retry/', retry_wrong_view, name='retry_wrong'),
-    path('review/', views.review_view, name='review'),
+    path('review/', review_view, name='review'),
 ]
