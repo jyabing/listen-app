@@ -19,6 +19,29 @@
     <p class="text-danger">❌ 回答错误。</p>
 {% endif %}
 
+{% if mode == "speaking" %}
+    <h3>口说练习结果</h3>
+    <p><strong>转写文本：</strong> {{ transcript }}</p>
+    <p><strong>高亮对比：</strong> {{ highlighted|safe }}</p>
+    {% if is_correct %}
+    <div class="alert alert-success">判定：通过</div>
+    {% else %}
+    <div class="alert alert-danger">判定：不通过</div>
+    {% endif %}
+    <audio controls src="{{ audio_path }}"></audio>
+{% endif %}
+
+{% if mode == "speaking" %}
+    <p><strong>识别文字：</strong>{{ user_answer }}</p>
+    <p><strong>准确率：</strong>{{ accuracy }}%</p>
+    {% if is_correct %}
+    <div class="alert alert-success">识别准确，练习通过！</div>
+    {% else %}
+    <div class="alert alert-warning">识别率不足，建议多练习。</div>
+    {% endif %}
+    <audio controls src="{{ audio_path }}"></audio>
+{% endif %}
+
 <a href="{% url 'practice' %}" class="btn btn-secondary">再做一题</a>
 <a href="{% url 'practice_setup' %}" class="btn btn-secondary">返回分类选择</a>
 

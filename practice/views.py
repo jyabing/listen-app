@@ -10,7 +10,10 @@ import os
 import difflib
 import html
 from django.db.models import Max
-from .utils import sm2_update
+from .utils import sm2_update, transcribe_and_score
+from django.conf import settings
+from django.utils import timezone
+from .utils import transcribe_audio, highlight_diff, is_answer_similar
 
 def home_view(request):
     """
@@ -81,34 +84,50 @@ def practice_view(request):
     material = random.choice(materials)
 
     # 处理 POST（用户提交答案）
-    if request.method == "POST":
-        # —— 打字模式逻辑举例 —— 
-        raw = request.POST.get("user_answer", "").strip()
-        is_correct = (raw == material.answer_text.strip())
+    if request.method == "POST" and mode == "speaking":
+        uploaded = request.FILES.get("audio_data")
+        if not uploaded:
+            return render(request, "practice/result.html", {
+                "material": material,
+                "user_answer": "未检测到录音",
+                "is_correct": False,
+            })
 
-        # 创建答题记录（含 SM-2 复习字段）
+        # 1) 保存音频文件到 media/user_audio/...
+        rel_path = f"user_audio/{request.user.username}_{timezone.now().timestamp()}.webm"
+        full_path = os.path.join(settings.MEDIA_ROOT, rel_path)
+        os.makedirs(os.path.dirname(full_path), exist_ok=True)
+        with open(full_path, "wb+") as f:
+            for chunk in uploaded.chunks():
+                f.write(chunk)
+
+        # 2) 转写并判分
+        transcript = transcribe_audio(full_path)
+        correct = material.answer_text.strip()
+        is_corr = is_answer_similar(transcript, correct, threshold=0.8)
+        highlighted = highlight_diff(transcript, correct)
+
+        # 3) 保存记录（先记录原始转写和对错）
         rec = AnswerRecord.objects.create(
             user=request.user,
             material=material,
-            user_answer=raw,
-            is_correct=is_correct,
+            user_answer=transcript,
+            is_correct=is_corr,
             answered_at=timezone.now()
         )
-        # 调用 sm2 算法更新下次复习时间
-        rec = sm2_update(rec, quality=5 if is_correct else 2)
+        # 可选：结合 SM-2 更新复习计划
+        # quality = 5 if is_corr else 2
+        # sm2_update(rec, quality)
 
-        # 渲染结果页
+        # 4) 渲染结果页面
         return render(request, "practice/result.html", {
             "material": material,
-            "user_answer": raw,
-            "is_correct": is_correct
+            "mode": mode,
+            "transcript": transcript,
+            "highlighted": highlighted,
+            "is_correct": is_corr,
+            "audio_path": f"/media/{rel_path}"
         })
-
-    # 默认 GET，渲染练习页面
-    return render(request, "practice/practice.html", {
-        "material": material,
-        "mode": mode
-    })
 
 @login_required
 def practice_setup_view(request):
