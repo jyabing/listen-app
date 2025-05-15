@@ -5,14 +5,10 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login
 from django.contrib import messages
 from django.utils import timezone
-import whisper
-import os
-import difflib
-import html
+import os, whisper,html
 from django.db.models import Max
 from .utils import sm2_update, transcribe_and_score
 from django.conf import settings
-from django.utils import timezone
 from .utils import transcribe_audio, highlight_diff, is_answer_similar
 
 def home_view(request):
