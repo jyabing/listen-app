@@ -25,6 +25,17 @@
         </div>
 
         <div class="col-md-6">
+    <div class="card shadow-sm">
+    <div class="card-body">
+        <h5 class="card-title">阅读练习</h5>
+        <p class="card-text">选择翻译或句子排序，提升阅读理解。</p>
+        <a href="{% url 'reading' 'translate' %}?category_id=1" class="btn btn-primary">翻译选择</a>
+        <a href="{% url 'reading' 'ordering' %}?category_id=1" class="btn btn-secondary">句子排序</a>
+    </div>
+    </div>
+</div>
+
+        <div class="col-md-6">
         <div class="card shadow-sm">
             <div class="card-body">
             <h5 class="card-title">错题再练</h5>

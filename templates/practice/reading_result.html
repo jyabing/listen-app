@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}练习结果{% endblock %}
+{% block content %}
+<h2>练习结果</h2>
+<p>你的答案： <code>{{ user_choice }}</code></p>
+<p>正确答案： <code>{{ correct }}</code></p>
+{% if is_correct %}
+    <div class="alert alert-success">回答正确！</div>
+{% else %}
+    <div class="alert alert-danger">回答错误，下次注意。</div>
+{% endif %}
+<a href="{% url 'reading' mode %}?category_id={{ material.categories.first.id }}" class="btn btn-secondary">再来一题</a>
+{% endblock %}

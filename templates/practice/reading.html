@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}阅读练习{% endblock %}
+{% block content %}
+<h2>阅读练习 — {% if mode=="translate" %}翻译选择{% else %}句子排序{% endif %}</h2>
+
+<p class="mt-3"><strong>题干：</strong>{{ material.question_text }}</p>
+
+<form method="post" class="mt-4">
+    {% csrf_token %}
+
+    {% if mode=="translate" %}
+    {% for opt in options %}
+        <div class="form-check mb-2">
+        <input class="form-check-input" type="radio" name="choice" id="opt{{ forloop.counter }}" value="{{ opt }}">
+        <label class="form-check-label" for="opt{{ forloop.counter }}">{{ opt }}</label>
+        </div>
+    {% endfor %}
+
+    {% else %}
+    <!-- 句子排序：使用拖拽排序 -->
+    <ul id="sortable" class="list-group mb-3">
+        {% for word in options %}
+        <li class="list-group-item">{{ word }}</li>
+        {% endfor %}
+    </ul>
+    <!-- 在提交时收集顺序 -->
+    <input type="hidden" name="order[]" id="order-inputs">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+    <script>
+        $('#sortable').sortable();
+        $('form').on('submit', function(){
+        var arr=[];
+        $('#sortable li').each(function(){ arr.push($(this).text()); });
+          // 创建多个隐藏字段
+        arr.forEach(function(w){
+            $('<input>').attr({type:'hidden', name:'order[]', value:w}).appendTo('form');
+        });
+        });
+    </script>
+    {% endif %}
+
+    <button class="btn btn-primary mt-3" type="submit">提交</button>
+</form>
+{% endblock %}

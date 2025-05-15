@@ -6,6 +6,7 @@ from .views import (
     wrong_list_view,      # ✅ 加入这里
     retry_wrong_view,      # ✅ 加入这里
     review_view,          # ✅ 加入这里
+    reading_view,         # ✅ 加入这里
 
 )
 
@@ -16,4 +17,5 @@ urlpatterns = [
     path('wrong/', wrong_list_view, name='wrong_list'),
     path('wrong/<int:material_id>/retry/', retry_wrong_view, name='retry_wrong'),
     path('review/', review_view, name='review'),
+    path('reading/<str:mode>/', reading_view, name='reading'),
 ]

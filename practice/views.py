@@ -286,3 +286,76 @@ def review_view(request):
         "records": due_records,
         "materials": materials
     })
+
+@login_required
+def reading_view(request, mode):
+    # 1) 选分类
+    cat = request.GET.get("category_id")
+    if not cat:
+        return redirect("practice_setup")
+    try: cat = int(cat)
+    except: return redirect("practice_setup")
+
+    qs = Material.objects.filter(categories__id=cat)
+    if not qs.exists():
+        return render(request, "practice/result.html", {
+            "material": None, "message": "暂无题目"
+        })
+    material = random.choice(qs)
+
+    # 2) 准备选项
+    if mode == "translate":
+        # 以中文翻译为例，选出 3 个干扰项
+        correct = material.translation_zh
+        distractors = list(
+            Material.objects
+                .exclude(id=material.id)
+                .values_list("translation_zh", flat=True)
+                [:3]
+        )
+        options = [correct] + distractors
+        random.shuffle(options)
+
+    elif mode == "ordering":
+        # 将标准答案按空格拆成块
+        correct_order = material.answer_text.split()
+        options = correct_order[:]  # copy
+        random.shuffle(options)
+    else:
+        return redirect("practice_setup")
+
+    # 3) 处理提交
+    if request.method == "POST":
+        if mode == "translate":
+            choice = request.POST.get("choice")
+            is_correct = (choice == correct)
+        else:  # ordering
+            order = request.POST.getlist("order[]")
+            is_correct = (order == correct_order)
+            choice = " ".join(order)
+
+        rec = AnswerRecord.objects.create(
+            user=request.user,
+            material=material,
+            user_answer=choice,
+            is_correct=is_correct,
+            answered_at=timezone.now()
+        )
+        # 更新 SM-2
+        quality = 5 if is_correct else 2
+        sm2_update(rec, quality)
+
+        return render(request, "practice/reading_result.html", {
+            "material": material,
+            "mode": mode,
+            "is_correct": is_correct,
+            "user_choice": choice,
+            "correct": correct if mode=="translate" else " ".join(correct_order)
+        })
+
+    # 4) GET 渲染练习页
+    return render(request, "practice/reading.html", {
+        "material": material,
+        "mode": mode,
+        "options": options
+    })
