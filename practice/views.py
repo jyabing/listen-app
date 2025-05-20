@@ -2,7 +2,7 @@ import random
 from django.shortcuts import render, redirect
 from .models import Material, AnswerRecord, Category
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.utils import timezone
 import os, whisper,html
@@ -14,7 +14,22 @@ def home_view(request):
     """
     入口首页：展示各个功能入口链接
     """
-    return render(request, 'home.html')
+    today_due_count = 0
+    if request.user.is_authenticated:
+        today = timezone.now().date()
+        today_due_count = AnswerRecord.objects.filter(
+            user=request.user,
+            next_review__lte=today
+        ).values('material').distinct().count()
+
+    return render(request, 'home.html', {
+        'today_due_count': today_due_count
+    })
+
+def logout_view(request):
+    logout(request)
+    messages.success(request, "你已成功登出。欢迎随时回来继续练习！")
+    return redirect('home')
 
 def is_answer_similar(user_input, correct_answer, threshold=0.85):
     """
@@ -47,7 +62,8 @@ def login_view(request):
 
         if user is not None:
             login(request, user)
-            return redirect("practice_setup")  # 登录成功后跳到分类选择页
+            next_url = request.GET.get("next") or "home"  # ✅ 优先跳转 next，否则回首页
+            return redirect(next_url)
         else:
             messages.error(request, "用户名或密码错误")
 

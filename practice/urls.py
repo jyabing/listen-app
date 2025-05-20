@@ -1,8 +1,10 @@
 from django.urls import path
+from django.contrib.auth.views import LogoutView
 from .views import (
     practice_view,
     practice_setup_view,
     login_view,
+    logout_view,
     wrong_list_view,
     retry_wrong_view,
     review_view,
@@ -14,6 +16,7 @@ from .views import (
 
 urlpatterns = [
     path('login/', login_view, name='login'),
+    path('logout/', logout_view, name='logout'),
     path('', practice_setup_view, name='practice_setup'),
     path('start/', practice_view, name='practice'),
     path('wrong/', wrong_list_view, name='wrong_list'),
