@@ -6,10 +6,9 @@ from django.contrib.auth import authenticate, login
 from django.contrib import messages
 from django.utils import timezone
 import os, whisper,html
-from django.db.models import Max
-from .utils import sm2_update, transcribe_and_score
+from django.db.models import Max, Count
+from .utils import sm2_update, transcribe_and_score, highlight_diff, is_answer_similar
 from django.conf import settings
-from .utils import transcribe_and_score, highlight_diff, is_answer_similar
 
 def home_view(request):
     """
@@ -182,6 +181,8 @@ def practice_view(request):
                     is_correct=False,
                     answered_at=timezone.now()
                 )
+                quality = 5 if is_correct else 2
+                sm2_update(rec, quality)
 
                 return render(request, "practice/result.html", {
                     "material": material,
@@ -268,6 +269,8 @@ def retry_wrong_view(request, material_id):
                 is_correct=is_correct,
                 answered_at=timezone.now()
             )
+            quality = 5 if is_correct else 2
+            sm2_update(rec, quality)
 
             return render(request, "practice/result.html", {
                 "material": material,
@@ -373,4 +376,60 @@ def reading_view(request, mode):
         "material": material,
         "mode": mode,
         "options": options
+    })
+
+@login_required
+def review_recommendation_view(request):
+    today = timezone.now().date()
+    records_due = AnswerRecord.objects.filter(user=request.user, next_review__lte=today).select_related("material")
+
+    return render(request, 'practice/review_recommendation.html', {
+        'records_due': records_due,
+    })
+
+@login_required
+def review_summary_view(request):
+    today = timezone.now().date()
+    user = request.user
+
+    # 1. 今日推荐复习项目数
+    today_due_count = AnswerRecord.objects.filter(
+        user=user, next_review__lte=today
+    ).values('material').distinct().count()
+
+    # 2. 掌握度分布（只看用户最新记录）
+    latest_records = (
+        AnswerRecord.objects
+        .filter(user=user)
+        .order_by('material', '-answered_at')
+        .distinct('material')
+    )
+
+    ease_data = {
+        "熟练（≥2.5）": 0,
+        "中等（1.8~2.49）": 0,
+        "待加强（<1.8）": 0,
+    }
+
+    for rec in latest_records:
+        if rec.ease >= 2.5:
+            ease_data["熟练（≥2.5）"] += 1
+        elif rec.ease >= 1.8:
+            ease_data["中等（1.8~2.49）"] += 1
+        else:
+            ease_data["待加强（<1.8）"] += 1
+
+    # 3. 累计练习次数 Top 5
+    top_materials = (
+        AnswerRecord.objects
+        .filter(user=user)
+        .values('material__question_text')
+        .annotate(count=Count('id'))
+        .order_by('-count')[:5]
+    )
+
+    return render(request, 'practice/review_summary.html', {
+        'today_due_count': today_due_count,
+        'ease_data': ease_data,
+        'top_materials': top_materials,
     })

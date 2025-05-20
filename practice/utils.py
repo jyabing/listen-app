@@ -45,17 +45,14 @@ def sm2_update(record, quality):
     对一个 AnswerRecord 应用 SM-2 算法，
     quality: 0–5 分，>=3 视为“学会”
     """
-    # 如果答题质量 < 3，则重置重复次数
     if quality < 3:
+        # 答错或勉强，对应“未掌握”
         record.repetitions = 0
         record.interval = 1
     else:
-        # 计算新的难度系数
-        new_ease = record.ease + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02))
-        record.ease = max(new_ease, 1.3)
-
+        # 答对或接近，更新掌握度
         record.repetitions += 1
-        # 第一次复习间隔 1 天，第二次 6 天，其后按 formula
+
         if record.repetitions == 1:
             record.interval = 1
         elif record.repetitions == 2:
@@ -63,7 +60,11 @@ def sm2_update(record, quality):
         else:
             record.interval = int(record.interval * record.ease)
 
-    # 计算下次复习日期
+        # 更新 Ease（掌握度），不能低于 1.3
+        ease_change = 0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02)
+        record.ease = max(1.3, record.ease + ease_change)
+
+    # 设置下次复习日期
     record.next_review = timezone.now().date() + timedelta(days=record.interval)
     record.save()
     return record

@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>📊 复习统计总览</h2>
+
+<h3>📅 今日推荐复习</h3>
+<p>今天你需要复习 <strong>{{ today_due_count }}</strong> 项内容。</p>
+
+<h3>📈 掌握度分布</h3>
+<ul>
+  {% for label, count in ease_data.items %}
+    <li>{{ label }}：{{ count }} 项</li>
+  {% endfor %}
+</ul>
+
+<h3>🏆 累计练习次数 TOP 5</h3>
+<ol>
+  {% for item in top_materials %}
+    <li>{{ item.material__question_text|truncatechars:50 }}（{{ item.count }} 次）</li>
+  {% endfor %}
+</ol>
+
+{% endblock %}

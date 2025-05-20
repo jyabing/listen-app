@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>📘 今日推荐复习内容</h2>
+
+{% if records_due %}
+<ul>
+  {% for record in records_due %}
+  <p>以下是根据遗忘曲线推荐您今天应复习的内容：</p>
+    <li>
+      <strong>{{ record.material.question_text|truncatechars:40 }}</strong><br>
+      上次答题：{{ record.answered_at|date:"Y-m-d" }}<br>
+      推荐复习日：<span style="color:red">{{ record.next_review }}</span><br>
+      当前掌握度（Ease）：{{ record.ease|floatformat:2 }}，累计次数：{{ record.repetitions }}
+      <br><a href="{% url 'retry_wrong' record.material.id %}?mode=typing">立即复习</a>
+    </li>
+  {% endfor %}
+</ul>
+{% else %}
+<p>🎉 今天没有需要复习的内容，继续保持！</p>
+{% endif %}
+{% endblock %}
