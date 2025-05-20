@@ -22,6 +22,7 @@
           <li class="nav-item"><a class="nav-link" href="{% url 'wrong_list' %}">错题本</a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'review_recommendation' %}">记忆计划</a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'review_summary' %}">复习统计</a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'review_priority' %}">智能推荐</a></li>
         {% endif %}
         {% if user.is_staff %}
             <li class="nav-item"><a class="nav-link" href="{% url 'admin:index' %}">后台管理</a></li>

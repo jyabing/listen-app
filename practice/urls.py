@@ -11,6 +11,7 @@ from .views import (
     reading_view,
     review_recommendation_view,
     review_summary_view,
+    review_priority_view,
 
 )
 
@@ -24,5 +25,6 @@ urlpatterns = [
     path('review/', review_view, name='review'),
     path('review/next/', review_recommendation_view, name='review_recommendation'),
     path('review/summary/', review_summary_view, name='review_summary'),
+    path('review/priority/', review_priority_view, name='review_priority'),
     path('reading/<str:mode>/', reading_view, name='reading'),
 ]

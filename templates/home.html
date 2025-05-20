@@ -65,8 +65,8 @@
     <div class="card-body">
       <h5 class="card-title">我的题库管理</h5>
       <p class="card-text">创建、管理你自己的听写题目和分类。</p>
-      {# <a href="{% url 'material_list' %}" class="btn btn-primary me-2">📄 我的题目</a> #}
-      {# <a href="{% url 'category_manage' %}" class="btn btn-outline-secondary">🗂️ 分类维护</a> #}
+      <a href="{% url 'review_priority' %}" class="btn btn-outline-warning mt-2">📌 智能推荐</a>
+
     </div>
   </div>
 </div>
@@ -94,6 +94,7 @@
 
         <a href="{% url 'review_recommendation' %}" class="btn btn-primary me-2">开始复习</a>
         <a href="{% url 'review_summary' %}" class="btn btn-outline-secondary">📊 查看统计</a>
+        <a href="{% url 'review_priority' %}" class="btn btn-outline-warning">📌 智能推荐</a>
       </div>
     </div>
   </div>

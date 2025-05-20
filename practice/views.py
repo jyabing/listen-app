@@ -1,12 +1,12 @@
-import random
+import random, math, os, whisper,html
 from django.shortcuts import render, redirect
 from .models import Material, AnswerRecord, Category
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.utils import timezone
-import os, whisper,html
-from django.db.models import Max, Count
+from datetime import date
+from django.db.models import Max, Count, F
 from .utils import sm2_update, transcribe_and_score, highlight_diff, is_answer_similar
 from django.conf import settings
 
@@ -448,4 +448,52 @@ def review_summary_view(request):
         'today_due_count': today_due_count,
         'ease_data': ease_data,
         'top_materials': top_materials,
+    })
+
+@login_required
+def review_priority_view(request):
+    today = date.today()
+    user = request.user
+
+    records = (
+        AnswerRecord.objects
+        .filter(user=user)
+        .order_by('material', '-answered_at')  # 每题保留最后一条
+        .distinct('material')
+    )
+
+    # 计算遗忘曲线
+    data = []  # ✅ 这一行必须放在循环前！
+
+    labels = []
+    retention_data = []
+
+    for rec in records:
+        days_since = (today - rec.answered_at.date()).days
+        ease = rec.ease or 2.5
+        k = 10  # 调节因子
+
+        retention = math.exp(-days_since / (ease * k))
+        forgetting = 1 - retention
+
+        label = rec.material.question_text[:20].replace('\n', ' ') + f" ({rec.id})"
+        labels.append(label)
+        retention_data.append(round(retention * 100, 2))  # 百分比显示
+
+        data.append({
+            'record': rec,
+            'days_since': days_since,
+            'retention': round(retention, 3),
+            'forgetting': round(forgetting, 3)
+        })
+
+    # 按遗忘率排序后重新构建图表数据（确保图表和表格一致）
+    sorted_data = sorted(data, key=lambda x: x['forgetting'], reverse=True)
+    labels_sorted = [item['record'].material.question_text[:20].replace('\n', ' ') + f" ({item['record'].id})" for item in sorted_data]
+    retention_data_sorted = [round(item['retention'] * 100, 2) for item in sorted_data]
+
+    return render(request, 'practice/review_priority.html', {
+        'items': sorted_data,
+        'labels': labels_sorted,
+        'retention_data': retention_data_sorted
     })

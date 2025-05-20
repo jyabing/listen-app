@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}📌 智能推荐 · 遗忘优先排序{% endblock %}
+{% block content %}
+
+<h2 class="mb-4">📌 预测遗忘率优先推荐</h2>
+
+<!-- 图表区域 -->
+<h5>📈 当前记忆保持率图（按预测遗忘率排序）</h5>
+<canvas id="retentionChart" height="300"></canvas>
+
+<hr class="my-4">
+
+<!-- 表格区域 -->
+<h5>📋 推荐复习列表（按最容易遗忘排序）</h5>
+<table class="table table-striped align-middle">
+  <thead>
+    <tr>
+      <th>题目</th>
+      <th>上次练习</th>
+      <th>间隔天数</th>
+      <th>掌握度</th>
+      <th>遗忘率</th>
+      <th>操作</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for item in items %}
+    <tr>
+      <td>{{ item.record.material.question_text|truncatechars:40 }}</td>
+      <td>{{ item.record.answered_at|date:"Y-m-d" }}</td>
+      <td>{{ item.days_since }} 天</td>
+      <td>{{ item.record.ease|floatformat:2 }}</td>
+      <td><span class="text-danger">{{ item.forgetting|floatformat:2 }}</span></td>
+      <td>
+        <a href="{% url 'retry_wrong' item.record.material.id %}?mode=typing" class="btn btn-sm btn-outline-primary">再练一次</a>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<!-- 引入 Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const ctx = document.getElementById('retentionChart').getContext('2d');
+  const retentionChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: {{ labels|safe }},
+      datasets: [{
+        label: '当前记忆保持率（%）',
+        data: {{ retention_data|safe }},
+        backgroundColor: 'rgba(54, 162, 235, 0.6)',
+        borderColor: 'rgba(54, 162, 235, 1)',
+        borderWidth: 1
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      scales: {
+        x: {
+          beginAtZero: true,
+          max: 100,
+          title: {
+            display: true,
+            text: '记忆保持率（%）'
+          }
+        }
+      },
+      plugins: {
+        legend: { display: false }
+      }
+    }
+  });
+</script>
+{% endblock %}
