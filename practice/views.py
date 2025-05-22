@@ -1,6 +1,6 @@
 import random, math, os, whisper,html
-from django.shortcuts import render, redirect
-from .models import Material, AnswerRecord, Category
+from django.shortcuts import render, redirect, get_object_or_404
+from .models import Material, AnswerRecord, Category, PracticeSession, OralAnswer
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
@@ -9,6 +9,10 @@ from datetime import date
 from django.db.models import Max, Count, F
 from .utils import sm2_update, transcribe_and_score, highlight_diff, is_answer_similar
 from django.conf import settings
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+
+model = whisper.load_model("base")  # 推荐全局加载一次
 
 def home_view(request):
     """
@@ -25,6 +29,39 @@ def home_view(request):
     return render(request, 'home.html', {
         'today_due_count': today_due_count
     })
+
+@csrf_exempt
+def process_oral_answer(request, session_id, material_id):
+    if request.method == 'POST' and request.FILES.get('audio'):
+        session = get_object_or_404(PracticeSession, id=session_id)
+        material = get_object_or_404(Material, id=material_id)
+        audio_file = request.FILES['audio']
+
+        # 保存音频文件
+        oral_answer = OralAnswer.objects.create(
+            user=request.user,
+            session=session,
+            material=material,
+            audio_file=audio_file
+        )
+
+        # 语音识别
+        result = model.transcribe(oral_answer.audio_file.path)
+        recognized = result["text"].strip()
+
+        # 比对
+        correct_answer = material.answer_text.strip()
+        is_correct = recognized.lower() == correct_answer.lower()
+
+        oral_answer.recognized_text = recognized
+        oral_answer.is_correct = is_correct
+        oral_answer.save()
+
+        return JsonResponse({
+            "recognized_text": recognized,
+            "is_correct": is_correct
+        })
+    return JsonResponse({"error": "Invalid request"}, status=400)
 
 def logout_view(request):
     logout(request)

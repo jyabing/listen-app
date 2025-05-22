@@ -1,0 +1,72 @@
+<!-- templates/practice/play_c_mode.html -->
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<h2>口说练习模式（C）</h2>
+
+<div id="player-area">
+  <p id="material-text">{{ material.question_text }}</p>
+  <audio id="audio" controls src="{{ material.audio.url }}"></audio>
+</div>
+
+<button id="start-record">🎤 开始录音</button>
+<button id="stop-record" disabled>⏹️ 停止录音</button>
+
+<p>识别结果：<span id="result-{{ material.id }}"></span></p>
+
+<script>
+let mediaRecorder;
+let audioChunks = [];
+
+const startButton = document.getElementById("start-record");
+const stopButton = document.getElementById("stop-record");
+
+startButton.onclick = async () => {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    mediaRecorder = new MediaRecorder(stream);
+    audioChunks = [];
+
+    mediaRecorder.ondataavailable = event => {
+        audioChunks.push(event.data);
+    };
+
+    mediaRecorder.onstop = () => {
+        const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
+        uploadAudio(audioBlob, {{ session.id }}, {{ material.id }});
+    };
+
+    mediaRecorder.start();
+    startButton.disabled = true;
+    stopButton.disabled = false;
+};
+
+stopButton.onclick = () => {
+    mediaRecorder.stop();
+    startButton.disabled = false;
+    stopButton.disabled = true;
+};
+
+function uploadAudio(blob, sessionId, materialId) {
+    const formData = new FormData();
+    formData.append("audio", blob);
+
+    fetch(`/oral/submit/${sessionId}/${materialId}/`, {
+        method: "POST",
+        body: formData,
+        headers: {
+            "X-CSRFToken": "{{ csrf_token }}"
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById(`result-${materialId}`).innerText = data.recognized_text;
+        if (data.is_correct) {
+            alert("✅ 正确！");
+        } else {
+            alert("❌ 再试一次！");
+        }
+    });
+}
+</script>
+{% endblock %}

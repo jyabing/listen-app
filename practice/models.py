@@ -51,4 +51,26 @@ class AnswerRecord(models.Model):
 
     def __str__(self):
         return f"{self.user.username} – {self.material.id}"
-    
+
+class PracticeSession(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    started_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.started_at.strftime('%Y-%m-%d %H:%M')}"
+
+
+class OralAnswer(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    started_at = models.DateTimeField(auto_now_add=True)
+    material = models.ForeignKey('Material', on_delete=models.CASCADE)
+    session = models.ForeignKey('practice.PracticeSession', on_delete=models.CASCADE)
+    audio_file = models.FileField(upload_to='oral/')
+    recognized_text = models.TextField(blank=True)
+    is_correct = models.BooleanField(default=False)
+    keyword_hits = models.IntegerField(default=0)
+    keyword_total = models.IntegerField(default=0)
+    submitted_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.material.question_text[:30]}"
